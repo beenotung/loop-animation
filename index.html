@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #main {
+        width: 100vw;
+        height: 100vh;
+        background-color: skyblue;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="main"> </canvas>
+    <script>
+      let canvas = document.querySelector('#main')
+      let context = canvas.getContext('2d')
+
+      let rect = canvas.getBoundingClientRect()
+      let w = (canvas.width = rect.width)
+      let h = (canvas.height = rect.height)
+
+      let size = Math.min(w, h) / 10
+
+      let corners = {
+        top: size * 2,
+        left: size * 2,
+        right: w - size * 2,
+        bottom: h - size * 2,
+      }
+      let cornerSize = {
+        w: corners.right - corners.left,
+        h: corners.bottom - corners.top,
+      }
+
+      let targetList = [
+        { x: corners.left, y: corners.top },
+        { x: corners.right, y: corners.top },
+        { x: corners.right, y: corners.bottom },
+        { x: corners.left, y: corners.bottom },
+      ]
+      let targetIndex = 0
+
+      let x = targetList[0].x
+      let y = targetList[0].y
+
+      let speed = 1
+      let speedRate = 0.9
+
+      canvas.addEventListener('click', e => {
+        speed = 1
+        // targetList.push({ x: e.clientX, y: e.clientY })
+      })
+
+      function drawProgress() {
+        drawProgressBody()
+        drawProgressCenter()
+      }
+
+      function drawProgressBody() {
+        context.fillStyle = 'red'
+        let d = size
+        let r = d / 2
+        context.fillRect(x - r, y - r, d, d)
+      }
+
+      function drawProgressCenter() {
+        context.fillStyle = 'yellow'
+        let d = size / 5
+        let r = d / 2
+        context.fillRect(x - r, y - r, d, d)
+      }
+
+      function drawTrack() {
+        context.strokeStyle = 'blue'
+        context.beginPath()
+        context.moveTo(targetList[0].x, targetList[0].y)
+        for (let i = 1; i < targetList.length; i++) {
+          context.lineTo(targetList[i].x, targetList[i].y)
+        }
+        context.lineTo(targetList[0].x, targetList[0].y)
+        context.stroke()
+        return
+        context.fillRect(corners.left, corners.top, cornerSize.w, 1)
+        context.fillRect(corners.left, corners.bottom, cornerSize.w, 1)
+        context.fillRect(corners.left, corners.top, 1, cornerSize.h)
+        context.fillRect(corners.right, corners.top, 1, cornerSize.h)
+      }
+
+      function draw() {
+        context.clearRect(0, 0, w, h)
+        drawProgress()
+        drawTrack()
+      }
+
+      function move() {
+        let target = targetList[targetIndex]
+        let dx = target.x - x
+        let dy = target.y - y
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+          targetIndex = (targetIndex + 1) % targetList.length
+          speed *= speedRate
+          if (speed < 0.01 || speed > 1) {
+            speedRate = 1 / speedRate
+            speed *= speedRate
+          }
+          return
+        }
+        x += dx * speed
+        y += dy * speed
+      }
+
+      function loop() {
+        move()
+        draw()
+        requestAnimationFrame(loop)
+      }
+      loop()
+    </script>
+  </body>
+</html>
